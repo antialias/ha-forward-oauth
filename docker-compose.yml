@@ -1,0 +1,25 @@
+services:
+  ha-forward-oauth:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ha-forward-oauth
+    environment:
+      - FLASK_APP=app/main.py
+      - FLASK_RUN_HOST=0.0.0.0
+    volumes:
+      - .:/usr/src/app
+    networks:
+      - webgateway
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.auth-callback.rule=Host(`730op.synology.me`) && Path(`/music-assistant/callback`)"
+      - "traefik.http.routers.auth-callback.entrypoints=websecure"
+      - "traefik.http.routers.auth-callback.tls.certresolver=myresolver"
+      - "traefik.http.routers.auth-callback.middlewares=auth-callback-stripprefix"
+      - "traefik.http.middlewares.auth-callback-stripprefix.stripprefix.prefixes=/music-assistant"
+      - "traefik.http.services.ha-forward-oauth.loadbalancer.server.port=5000"
+      - "traefik.http.middlewares.auth-music.forwardAuth.address=http://ha-forward-oauth:5000/auth"
+networks:
+  webgateway:
+    external: true
