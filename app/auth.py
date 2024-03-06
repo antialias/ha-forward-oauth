@@ -36,10 +36,23 @@ def exchange_code_for_token(code):
 
 def is_user_authenticated():
     """
-    Check if the user is authenticated by verifying the presence and validity of the access token.
+    Check if the user is authenticated by verifying the access token's validity with the Home Assistant API.
     """
     access_token = session.get('access_token')
     if not access_token:
         return False
-    # Here, you can add additional checks on the access token, such as verifying its expiration
-    return True
+
+    # Example endpoint requiring authentication; adjust as needed.
+    url = f"{settings.HOME_ASSISTANT_URL}/api/"
+    headers = {
+        "Authorization": f"Bearer {access_token}"
+    }
+
+    response = requests.get(url, headers=headers)
+    if response.status_code == 200:
+        # Access token is valid
+        return True
+    else:
+        # Access token is invalid or expired
+        return False
+

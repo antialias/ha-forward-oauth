@@ -1,4 +1,21 @@
 services:
+  nginx-inject-service-worker:
+    image: nginx:latest
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+      - ./music-assistant-sw.js:/usr/share/nginx/html/music-assistant-sw.js
+      - ./nginx-logs:/var/log/nginx
+    labels:
+
+      - "traefik.enable=true"
+      - "traefik.http.routers.music-assistant.rule=Host(`730op.synology.me`) && PathPrefix(`/music-assistant`)"
+      - "traefik.http.routers.music-assistant.entrypoints=websecure"
+      - "traefik.http.routers.music-assistant.middlewares=strip-music-assistant,auth-music@docker"
+      - "traefik.http.routers.music-assistant.tls.certresolver=myresolver"
+      - "traefik.http.middlewares.strip-music-assistant.stripPrefix.prefixes=/music-assistant"
+      - "traefik.http.services.music-assistant.loadbalancer.server.port=80"
+    networks:
+      - webgateway
   ha-forward-oauth:
     build:
       context: .
